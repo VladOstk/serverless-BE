@@ -1,0 +1,26 @@
+service: vlad-ostk-products
+frameworkVersion: '3'
+
+plugins:
+  - serverless-auto-swagger
+  - serverless-plugin-typescript
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-1
+  stage: dev
+
+functions:
+  getProductsList:
+    handler: ./get-products-list/get-products-list.getProductsListHandler
+    events:
+      - http:
+          path: /products
+          method: get
+  getProductById:
+    handler: ./get-product-by-id/get-product-by-id.getProductByIdHandler
+    events:
+      - http:
+          path: /products/{productId}
+          method: get
