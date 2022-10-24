@@ -47,18 +47,26 @@ export const getProductById: (id: string) => Promise<ProductApiModel | null> = (
       response.Item ? (unmarshall(response.Item) as ProductApiModel) : null
     );
 
-export const addProduct = (product: ProductsModel) =>
+export const addProduct = (product: ProductApiModel) =>
   Promise.all([
     ddbClient.send(
       new PutItemCommand({
         TableName: process.env.productsTable,
-        Item: marshall(product),
+        Item: marshall({
+          id: product.id,
+          description: product.description,
+          price: product.price,
+          title: product.title,
+        } as ProductsModel),
       })
     ),
     ddbClient.send(
       new PutItemCommand({
         TableName: process.env.stocksTable,
-        Item: marshall({ product_id: product.id, count: 0 } as StocksModel),
+        Item: marshall({
+          product_id: product.id,
+          count: product.count,
+        } as StocksModel),
       })
     ),
   ]);
