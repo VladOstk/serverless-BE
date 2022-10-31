@@ -1,3 +1,5 @@
 services:
   products:
     path: ./services/products
+  import:
+    path: ./services/import
