@@ -13,31 +13,43 @@ export async function getProductByIdHandler(
   context: Context,
   callback: APIGatewayProxyCallback
 ): Promise<void> {
-  const products = await new Promise((resolve) =>
-    setTimeout(() => {
-      resolve(
-        getProductById(
-          event.pathParameters[GetProductByIdPathParameter.ProductId]
-        )
-      );
-    }, 500)
-  );
+  const corsHeaders = {
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'OPTIONS,GET',
+  };
 
-  if (products === null) {
-    const errorReponse: HTTPErrorResponseBody = {
-      errorMessage: PRODUCT_NOT_FOUND_ERROR_MESSAGE,
-    };
+  console.log('GET /products/{productId}', event);
+
+  try {
+    const product = await getProductById(
+      event.pathParameters![GetProductByIdPathParameter.ProductId]!
+    );
+
+    if (product === null) {
+      const errorReponse: HTTPErrorResponseBody = {
+        errorMessage: PRODUCT_NOT_FOUND_ERROR_MESSAGE,
+      };
+
+      callback(null, {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify(errorReponse),
+      });
+
+      return;
+    }
 
     callback(null, {
-      statusCode: 400,
-      body: JSON.stringify(errorReponse),
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify(product),
     });
-
-    return;
+  } catch {
+    callback(null, {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify('Something went wrong'),
+    });
   }
-
-  callback(null, {
-    statusCode: 200,
-    body: JSON.stringify(products),
-  });
 }

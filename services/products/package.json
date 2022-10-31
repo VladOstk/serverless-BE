@@ -3,5 +3,10 @@
   "version": "1.0.0",
   "description": "Products service",
   "author": "Vlad_ostk",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.32.0",
+    "@aws-sdk/lib-dynamodb": "^3.32.0",
+    "@aws-sdk/util-dynamodb": "^3.194.0"
+  }
 }

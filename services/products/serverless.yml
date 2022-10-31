@@ -5,11 +5,38 @@ plugins:
   - serverless-auto-swagger
   - serverless-plugin-typescript
 
+custom:
+  region: eu-west-1
+  productsTable: Products
+  stocksTable: Stocks
+
 provider:
   name: aws
   runtime: nodejs14.x
-  region: eu-west-1
+  region: ${self:custom.region}
   stage: dev
+  environment:
+    productsTable: ${self:custom.productsTable}
+    stocksTable: ${self:custom.stocksTable}
+    region: ${self:custom.region}
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        Fn::GetAtt:
+          - ${self:custom.productsTable}
+          - Arn
+    - Effect: 'Allow'
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+      Resource:
+        Fn::GetAtt:
+          - ${self:custom.stocksTable}
+          - Arn
 
 functions:
   getProductsList:
@@ -24,3 +51,38 @@ functions:
       - http:
           path: /products/{productId}
           method: get
+  addProduct:
+    handler: ./add-product/add-product.addProductHandler
+    events:
+      - http:
+          path: /products
+          method: post
+
+resources:
+  Resources:
+    Products:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.productsTable}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    Stocks:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.stocksTable}
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
