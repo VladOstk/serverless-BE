@@ -1,9 +1,12 @@
 import { S3Event } from 'aws-lambda';
 import { S3, GetObjectCommandOutput } from '@aws-sdk/client-s3';
+import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import * as csv from 'csv-parser';
 import { Readable } from 'stream';
 
-export async function importFileParserHandler(event: S3Event): Promise<void> {
+export async function importFileParserHandler(
+  event: S3Event
+): Promise<unknown> {
   const csvFileKey = event.Records[0].s3.object.key;
 
   const s3 = new S3({
@@ -15,7 +18,7 @@ export async function importFileParserHandler(event: S3Event): Promise<void> {
     Key: csvFileKey,
   });
 
-  const resultContent = await new Promise((resolve) => {
+  return new Promise<Record<string, unknown>[]>((resolve) => {
     const csvContent: Record<string, unknown>[] = [];
 
     (response.Body as Readable)
@@ -26,7 +29,22 @@ export async function importFileParserHandler(event: S3Event): Promise<void> {
       .on('end', () => {
         resolve(csvContent);
       });
-  });
+  }).then((csvContent: Record<string, unknown>[]) => {
+    const sqs = new SQSClient({ region: process.env.region });
 
-  console.log('csv content', resultContent);
+    return Promise.all(
+      csvContent.reduce<Promise<unknown>[]>((acc, item) => {
+        acc.push(
+          sqs.send(
+            new SendMessageCommand({
+              MessageBody: JSON.stringify(item),
+              QueueUrl: process.env.sqsQueueUrl,
+            })
+          )
+        );
+
+        return acc;
+      }, [])
+    );
+  });
 }

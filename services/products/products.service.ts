@@ -3,15 +3,14 @@ import {
   GetItemCommand,
   ScanCommand,
   ScanCommandInput,
-  PutItemCommand,
 } from '@aws-sdk/client-dynamodb';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { unmarshall } from '@aws-sdk/util-dynamodb';
 
 import {
   ProductApiModel,
   ProductsModel,
   StocksModel,
-} from './get-products-list/get-products.models';
+} from './shared/models/product.model';
 
 const ddbClient = new DynamoDBClient({ region: process.env.region });
 
@@ -46,27 +45,3 @@ export const getProductById: (id: string) => Promise<ProductApiModel | null> = (
     .then((response) =>
       response.Item ? (unmarshall(response.Item) as ProductApiModel) : null
     );
-
-export const addProduct = (product: ProductApiModel) =>
-  Promise.all([
-    ddbClient.send(
-      new PutItemCommand({
-        TableName: process.env.productsTable,
-        Item: marshall({
-          id: product.id,
-          description: product.description,
-          price: product.price,
-          title: product.title,
-        } as ProductsModel),
-      })
-    ),
-    ddbClient.send(
-      new PutItemCommand({
-        TableName: process.env.stocksTable,
-        Item: marshall({
-          product_id: product.id,
-          count: product.count,
-        } as StocksModel),
-      })
-    ),
-  ]);

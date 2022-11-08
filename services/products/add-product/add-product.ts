@@ -1,7 +1,7 @@
 import { Context, APIGatewayProxyCallback, APIGatewayEvent } from 'aws-lambda';
 
-import { ProductApiModel } from '../get-products-list/get-products.models';
-import { addProduct } from '../products.service';
+import { ProductApiModel } from '../shared/models';
+import { addProduct } from '../shared/commands';
 
 export async function addProductHandler(
   event: APIGatewayEvent,

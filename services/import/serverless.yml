@@ -19,12 +19,20 @@ provider:
     region: ${self:custom.region}
     uploadedBucket: ${self:custom.uploadedBucket}
     uploadedBucketPrefix: ${self:custom.uploadedBucketPrefix}
+    sqsQueueUrl:
+      'Fn::ImportValue': 'CatalogItemsQueueUrl'
+
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
         - s3:*
       Resource:
         - arn:aws:s3:::${self:custom.uploadedBucket}/*
+    - Effect: 'Allow'
+      Action:
+        - sqs:*
+      Resource:
+        'Fn::ImportValue': 'CatalogItemsQueueArn'
 
 functions:
   importProductsFile:

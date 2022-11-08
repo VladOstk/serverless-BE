@@ -1,11 +1,11 @@
 import { Context, APIGatewayProxyCallback, APIGatewayEvent } from 'aws-lambda';
 import { ScanCommandInput } from '@aws-sdk/client-dynamodb';
 
-import { HTTPErrorResponseBody } from '../../../shared/models/http-error-response-body.model';
+import { HTTPErrorResponseBody } from '../../../shared/models';
 import { getProducts, getStocks } from '../products.service';
 
 import { PRODUCTS_RETRIEVAL_ERROR_MESSAGE } from './get-products-list.constants';
-import { ProductApiModel } from './get-products.models';
+import { ProductApiModel } from '../shared/models/product.model';
 
 export async function getProductsListHandler(
   event: APIGatewayEvent,

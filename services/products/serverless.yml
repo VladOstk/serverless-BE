@@ -19,6 +19,8 @@ provider:
     productsTable: ${self:custom.productsTable}
     stocksTable: ${self:custom.stocksTable}
     region: ${self:custom.region}
+    snsArn:
+      Ref: SNSTopic
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
@@ -37,7 +39,11 @@ provider:
         Fn::GetAtt:
           - ${self:custom.stocksTable}
           - Arn
-
+    - Effect: 'Allow'
+      Action:
+        - sns:*
+      Resource:
+        Ref: SNSTopic
 functions:
   getProductsList:
     handler: ./get-products-list/get-products-list.getProductsListHandler
@@ -57,6 +63,15 @@ functions:
       - http:
           path: /products
           method: post
+  catalogBatchProcess:
+    handler: ./catalog-batch-process/catalog-batch-process.catalogBatchProcessHandler
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt:
+              - CatalogItemsQueue
+              - Arn
 
 resources:
   Resources:
@@ -86,3 +101,31 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    CatalogItemsQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: catalog-items-queue
+    SNSTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: product-added-topic
+    SNSSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: vladjavaacc@gmail.com
+        Protocol: email
+        TopicArn:
+          Ref: SNSTopic
+  Outputs:
+    CatalogItemsQueueArn:
+      Value:
+        Fn::GetAtt:
+          - CatalogItemsQueue
+          - Arn
+      Export:
+        Name: CatalogItemsQueueArn
+    CatalogItemsQueueUrl:
+      Value:
+        Ref: CatalogItemsQueue
+      Export:
+        Name: CatalogItemsQueueUrl
