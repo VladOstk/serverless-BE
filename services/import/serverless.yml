@@ -1,0 +1,44 @@
+service: vlad-ostk-import
+frameworkVersion: '3'
+
+plugins:
+  - serverless-auto-swagger
+  - serverless-plugin-typescript
+
+custom:
+  region: eu-west-1
+  uploadedBucket: angular-shopping-uploaded
+  uploadedBucketPrefix: uploaded
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: ${self:custom.region}
+  stage: dev
+  environment:
+    region: ${self:custom.region}
+    uploadedBucket: ${self:custom.uploadedBucket}
+    uploadedBucketPrefix: ${self:custom.uploadedBucketPrefix}
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - s3:*
+      Resource:
+        - arn:aws:s3:::${self:custom.uploadedBucket}/*
+
+functions:
+  importProductsFile:
+    handler: ./import-products-file/import-products-file.importProductsFileHandler
+    events:
+      - http:
+          path: /import
+          method: get
+  importFileParser:
+    handler: ./import-file-parser/import-file-parser.importFileParserHandler
+    events:
+      - s3:
+          bucket: ${self:custom.uploadedBucket}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: ${self:custom.uploadedBucketPrefix}/
+          existing: true
