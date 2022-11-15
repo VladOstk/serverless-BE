@@ -1,0 +1,8 @@
+{
+  "name": "vlad-ostk-authorization",
+  "version": "1.0.0",
+  "description": "Authorization service",
+  "author": "Vlad_ostk",
+  "license": "ISC",
+  "dependencies": {}
+}

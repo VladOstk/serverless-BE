@@ -9,3 +9,4 @@ swagger
 
 *.js
 *.js.map
+.env

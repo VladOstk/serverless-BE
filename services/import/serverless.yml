@@ -15,6 +15,16 @@ provider:
   runtime: nodejs14.x
   region: ${self:custom.region}
   stage: dev
+  httpApi:
+    cors: true
+    authorizers:
+      basicAuthorizer:
+        type: 'request'
+        functionArn: arn:aws:lambda:${self:provider.region}:${aws:accountId}:function:vlad-ostk-authorization-dev-basicAuthorizer
+        resultTtlInSeconds: 0
+        enableSimpleResponses: true
+        payloadVersion: '2.0'
+        identitySource: $request.header.Authorization
   environment:
     region: ${self:custom.region}
     uploadedBucket: ${self:custom.uploadedBucket}
@@ -38,9 +48,13 @@ functions:
   importProductsFile:
     handler: ./import-products-file/import-products-file.importProductsFileHandler
     events:
-      - http:
+      - httpApi:
           path: /import
           method: get
+          cors: true
+          authorizer:
+            name: basicAuthorizer
+
   importFileParser:
     handler: ./import-file-parser/import-file-parser.importFileParserHandler
     events:
