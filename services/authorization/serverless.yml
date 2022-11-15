@@ -1,0 +1,28 @@
+service: vlad-ostk-authorization
+frameworkVersion: '3'
+
+plugins:
+  - serverless-auto-swagger
+  - serverless-plugin-typescript
+  - serverless-dotenv-plugin
+
+custom:
+  region: eu-west-1
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: ${self:custom.region}
+  stage: dev
+  environment:
+    region: ${self:custom.region}
+
+functions:
+  basicAuthorizer:
+    handler: ./basic-authorizer/basic-authorizer.basicAuthorizerHandler
+
+resources:
+  Outputs:
+    BasicAuthorizerLambdaFunctionQualifiedArn:
+      Export:
+        Name: BasicAuthorizerArn

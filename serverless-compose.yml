@@ -3,3 +3,5 @@ services:
     path: ./services/products
   import:
     path: ./services/import
+  authorization:
+    path: ./services/authorization
